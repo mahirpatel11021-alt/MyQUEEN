@@ -8,12 +8,12 @@
 <style>
 body {
   margin: 0;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   font-family: 'Segoe UI', sans-serif;
-  overflow: hidden;
+  overflow-x: hidden;
   background: linear-gradient(135deg, #ffffff, #f7eaea);
   animation: pulseBG 6s ease-in-out infinite alternate;
 }
@@ -40,16 +40,17 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
-h1 {
-  color: #d6336c;
-  margin-bottom: 10px;
+.card.expand {
+  animation: expandCard 1s ease forwards;
 }
 
-p {
-  color: #555;
-  font-size: 16px;
-  line-height: 1.5;
+@keyframes expandCard {
+  from { transform: scale(1); }
+  to { transform: scale(1.04); }
 }
+
+h1 { color: #d6336c; }
+p { color: #555; font-size: 16px; line-height: 1.5; }
 
 .buttons {
   margin-top: 20px;
@@ -64,20 +65,10 @@ button {
   border: none;
 }
 
-.yes {
-  background: #d6336c;
-  color: white;
-}
+.yes { background: #d6336c; color: white; }
+.no { background: #eee; color: #555; position: absolute; }
 
-.no {
-  background: #eee;
-  color: #555;
-  position: absolute;
-}
-
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 .glow {
   animation: glow 1.5s infinite alternate;
@@ -88,7 +79,7 @@ button {
   to { box-shadow: 0 0 45px #ff4d6d; }
 }
 
-/* Floating white roses & hearts */
+/* Floating icons */
 .floating {
   position: absolute;
   font-size: 22px;
@@ -101,7 +92,19 @@ button {
   to { transform: translateY(-10vh); }
 }
 
-/* Tap sparkles */
+/* Confetti */
+.confetti {
+  position: absolute;
+  font-size: 18px;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  from { transform: translateY(-10vh) rotate(0deg); }
+  to { transform: translateY(110vh) rotate(360deg); }
+}
+
+/* Sparkles */
 .sparkle {
   position: absolute;
   width: 10px;
@@ -157,65 +160,87 @@ button {
 
     <img src="diya.jpeg" class="love-image" id="loveImage">
 
-    <p style="margin-top: 15px;"><strong>— Mahir 🤍</strong></p>
+    <p style="margin-top:15px;"><strong>— Mahir 🤍</strong></p>
   </div>
 </div>
 
-<audio id="music">
+<audio id="music" preload="auto">
   <source src="those-eyes.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-// Floating white roses & hearts
+// Floating background icons
 function floatIcons() {
-  const icons = ['🤍','🤍','🌹','🤍'];
+  const icons = ['🤍','🤍','🌹','✨'];
   const f = document.createElement('div');
   f.className = 'floating';
-  f.innerHTML = icons[Math.floor(Math.random() * icons.length)];
-  f.style.left = Math.random() * 100 + 'vw';
-  f.style.animationDuration = (Math.random() * 6 + 6) + 's';
+  f.innerHTML = icons[Math.floor(Math.random()*icons.length)];
+  f.style.left = Math.random()*100 + 'vw';
+  f.style.animationDuration = (Math.random()*6 + 6) + 's';
   document.body.appendChild(f);
-  setTimeout(() => f.remove(), 12000);
+  setTimeout(()=>f.remove(),12000);
 }
-setInterval(floatIcons, 500);
+setInterval(floatIcons,500);
 
-// NO button dodge (tap + hover)
-const noBtn = document.getElementById('noBtn');
-noBtn.addEventListener('touchstart', dodge);
-noBtn.addEventListener('mouseover', dodge);
+// Confetti burst
+function glamConfetti() {
+  const icons = ['💖','💞','✨','🤍','💫'];
+  for(let i=0;i<45;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.innerHTML=icons[Math.floor(Math.random()*icons.length)];
+    c.style.left=Math.random()*100+'vw';
+    c.style.animationDuration=(Math.random()*2+3)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),5000);
+  }
+}
 
-function dodge() {
-  noBtn.style.left = Math.random() * 220 + 'px';
-  noBtn.style.top = Math.random() * 60 + 'px';
+// NO button dodge
+const noBtn=document.getElementById('noBtn');
+noBtn.addEventListener('mouseover',dodge);
+noBtn.addEventListener('touchstart',dodge);
+
+function dodge(){
+  noBtn.style.left=Math.random()*220+'px';
+  noBtn.style.top=Math.random()*60+'px';
 }
 
 // YES action
-function sayYes() {
+function sayYes(){
   document.getElementById('buttons').classList.add('hidden');
   document.getElementById('response').classList.remove('hidden');
-  document.getElementById('card').classList.add('glow');
 
-  const music = document.getElementById('music');
-  music.volume = 0.7;
-  music.play();
+  const card=document.getElementById('card');
+  card.classList.add('glow','expand');
 
-  const img = document.getElementById('loveImage');
-  setTimeout(() => {
+  const music=document.getElementById('music');
+  music.currentTime=0;
+  music.volume=0.7;
+  music.play().catch(()=>{});
+
+  glamConfetti();
+
+  const img=document.getElementById('loveImage');
+  setTimeout(()=>{
     img.classList.add('show');
-  }, 800);
+    img.scrollIntoView({behavior:'smooth',block:'center'});
+  },900);
 }
 
 // Tap sparkles
-document.addEventListener('touchstart', sparkle);
-document.addEventListener('click', sparkle);
+document.addEventListener('click',sparkle);
+document.addEventListener('touchstart',sparkle);
 
-function sparkle(e) {
-  const s = document.createElement('div');
-  s.className = 'sparkle';
-  s.style.left = (e.clientX || e.touches[0].clientX) - 5 + 'px';
-  s.style.top = (e.clientY || e.touches[0].clientY) - 5 + 'px';
+function sparkle(e){
+  const x=e.clientX || e.touches[0].clientX;
+  const y=e.clientY || e.touches[0].clientY;
+  const s=document.createElement('div');
+  s.className='sparkle';
+  s.style.left=x-5+'px';
+  s.style.top=y-5+'px';
   document.body.appendChild(s);
-  setTimeout(() => s.remove(), 500);
+  setTimeout(()=>s.remove(),500);
 }
 </script>
 
